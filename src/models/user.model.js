@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import crypto from "crypto";
 const userSchema = new Schema({});
 (({
   avatar: {
@@ -73,25 +73,37 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 userSchema.methods.generateAccessToken = function () {
- return jwt.sign(
+  return jwt.sign(
     {
       _id: this._id,
       email: this.email,
-      username: this.username
+      username: this.username,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    {expiresIn: process.env.ACCESS_TOKEN_EXPIRY}
-  )
-}
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY },
+  );
+};
 
 userSchema.methods.genreateRefreshToken = function () {
- return jwt.sign(
+  return jwt.sign(
     {
-      _id: this._id, 
+      _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
-    {expiresIn:process.env.REFRESH_TOKEN_EXPIRY}
-  )
-}
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY },
+  );
+};
+
+userSchema.methods.generateTemporarayToken = function () {
+  const unHashedToken = crypto.randomBytes(20).toString("hex");
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(unHashedToken)
+    .digest("hex");
+
+  const tokenExpiry = Date.now() + 20 * 60 * 1000; //20 mins
+  return { unHashedToken, hashedToken, tokenExpiry };
+};
 
 export const user = mongoose.model("User", userSchema);
