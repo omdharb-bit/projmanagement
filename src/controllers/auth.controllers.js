@@ -1,12 +1,12 @@
-import { User } from "../models/user.model.js";
+import { user } from "../models/user.model.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
-import { asynchandler } from "../utils/async-handler.js";
+import {asyncHandler} from "../utils/async-handler.js";
 import { emailVerificationMailgenContent, sendEmail } from "../utils/mail.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
-    const user = await User.findById(userId);
+    const user = await user.findById(userId);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
@@ -21,7 +21,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
-const registerUser = asynchandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
 
   const existedUser = await User.findOne({
@@ -32,7 +32,7 @@ const registerUser = asynchandler(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists", []);
   }
 
-  const user = await User.create({
+  const user = await user.create({
     email,
     password,
     username,
@@ -52,7 +52,7 @@ const registerUser = asynchandler(async (req, res) => {
     subject: "Please verify your email",
     mailgenContent: emailVerificationMailgenContent(
       user.username,
-      `${req.protocol}://${req.get("host")}/api/v1/users/verify-emil/${unHashedToken}`,
+      `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`,
     ),
   });
 
